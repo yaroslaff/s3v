@@ -14,8 +14,8 @@ pipx install git+https://github.com/yaroslaff/s3v
 s3v uses boto3, so configuration is same as for `aws` utility (same `~/.aws/` files or `AWS_` shell variables, and optional `--profile NAME` argument)
 
 ## Examples
+We upload three versions of same file, each one will overwrite old copy. 
 
-We upload three versions of same file, each one will overwrite old copy. In "ls" we see filename, last modification time, size of latest copy and number of versions in storage.
 
 ### Upload
 
@@ -27,11 +27,11 @@ $ s3v cp test.txt s3://stg-objectlock/s3v/
 $ echo 3 > test.txt 
 $ s3v cp test.txt s3://stg-objectlock/s3v/
 ```
-You can also give full target name like s3://stg-objectlock/s3v/test.txt. `s3://` prefix is optional ()
+You can also give full target name like s3://stg-objectlock/s3v/test.txt. `s3://` prefix is optional (s3 will try to guess what is local file and what is bucket name).
 
 
 ### List
-Now, list contents of s3v logical 'folder' (all objects with name starting with `s3v/`). If we give full name of object, ls will list all versions.
+Now, list contents of s3v logical 'folder' (all objects with name starting with `s3v/`). In "ls" we see filename, last modification time, size of latest copy and number of versions in storage. If we give full name of object, ls will list all versions of this object.
 
 ```bash
 $ s3v ls stg-objectlock/s3v
@@ -58,7 +58,7 @@ $ cat test.txt
 3
 ```
 
-Give `-i VERSION` to download specific version.
+Give `-s VERSION` to download specific version.
 
 ```bash
 $ s3v cp stg-objectlock/s3v/test.txt . -s by0fQCa9Jl7gFgl8vKEjaDvl8z3CSRnD
