@@ -1,0 +1,68 @@
+[build-system]
+requires = ["hatchling>=1.27.0"]
+build-backend = "hatchling.build"
+
+[project]
+name = "s3v"
+license = { file = "LICENSE" }
+dynamic = ["version"]
+keywords = [
+  "aws", "s3", "versioned", "bucket", "object lock",
+  "retention", "undelete", "recover", "cli"
+]
+authors = [
+  { name = "Yaroslav Polyakov", email = "yaroslaff@gmail.com" },
+]
+description = "Convenient CLI tool to work with versioned (including Object Lock) S3 buckets (recover, undelete, etc.)"
+readme = "README.md"
+requires-python = ">=3.8"
+classifiers = [
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.8",
+  "Programming Language :: Python :: 3.9",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "License :: OSI Approved :: MIT License",
+  "Operating System :: OS Independent",
+]
+dependencies = [
+  "boto3>=1.28.0",
+  "botocore>=1.31.0",  
+]
+
+[project.urls]
+Homepage = "https://github.com/yaroslaff/s3v"
+Issues = "https://github.com/yaroslaff/s3v/issues"
+
+[project.scripts]
+s3v = "s3v.cli.main:main"
+
+[tool.hatch.version]
+path = "s3v/__about__.py"
+
+[tool.hatch.envs]
+py38 = { python = "3.8" }
+py39 = { python = "3.9" }
+py310 = { python = "3.10" }
+py311 = { python = "3.11" }
+py312 = { python = "3.12" }
+
+[tool.hatch.envs.default]
+dependencies = [
+  "coverage[toml]>=6.5",
+  "pytest",
+]
+
+[tool.hatch.envs.default.scripts]
+test = "pytest {args:tests}"
+test-cov = "coverage run -m pytest {args:tests}"
+cov-report = ["coverage report -m"]
+cov = ["test-cov", "cov-report"]
+
+[tool.coverage.report]
+exclude_lines = [
+  "no cov",
+  "if __name__ == '__main__':",
+  "if TYPE_CHECKING:",
+]
