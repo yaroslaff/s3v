@@ -204,8 +204,6 @@ def download_from_s3(s3obj: str, destination: str, version_id: str | None = None
     if destination == "." or destination.endswith("/"):
         dest_path = dest_path / Path(key).name
     
-    print(f"{dest_path=} {destination=}, keyname={key} keyname={Path(key).name}")
-
     # Create parent directory if needed
     dest_path.parent.mkdir(parents=True, exist_ok=True)
     

@@ -53,7 +53,6 @@ s3v/test.txt
 `s3v cp` will download latest version of file.
 ```bash
 $ s3v cp stg-objectlock/s3v/test.txt .
-dest_path=PosixPath('test.txt') destination='.', keyname=s3v/test.txt keyname=test.txt
 
 $ cat test.txt 
 3
@@ -63,7 +62,6 @@ Give `-i VERSION` to download specific version.
 
 ```bash
 $ s3v cp stg-objectlock/s3v/test.txt . -s by0fQCa9Jl7gFgl8vKEjaDvl8z3CSRnD
-dest_path=PosixPath('test.txt') destination='.', keyname=s3v/test.txt keyname=test.txt
   Using version: by0fQCa9Jl7gFgl8vKEjaDvl8z3CSRnD
 $ cat test.txt 
 1
@@ -113,8 +111,7 @@ $ s3v recover stg-objectlock/s3v/test.txt . -s by0fQCa9Jl7gFgl8vKEjaDvl8z3CSRnD
 Successfully recovered version by0fQCa9Jl7gFgl8vKEjaDvl8z3CSRnD as current version of s3://stg-objectlock/s3v/test.txt
 
 $ s3v cp stg-objectlock/s3v/test.txt . 
-dest_path=PosixPath('test.txt') destination='.', keyname=s3v/test.txt keyname=test.txt
-(.venv) mir ~/repo/s3v $ cat test.txt 
+$ cat test.txt 
 1
 ```
 
