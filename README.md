@@ -1,6 +1,8 @@
 # s3v
 Convinient CLI tool to work with versioned S3 buckets. Like `aws s3` or `aws s3api` but much easier to use.
 
+s3v is like if `aws s3` and `aws s3api` were built on our planet — for actual humans.
+
 ## Installation
 ~~~
 # recommended
