@@ -5,11 +5,10 @@ from .aws import normalize_bucket_name, sync_versions
 from .versions import VersionsIndex
 
 
-def list_objects(bucket: str, prefix: str = "", profile_name=None, recursive: bool = False, etag: bool = False):
+def list_objects(bucket: str, prefix: str = "", profile_name=None, recursive: bool = False, etag: bool = False, batch: bool = False):
     """List objects in a specific S3 bucket and prefix."""
 
     bucket, prefix = normalize_bucket_name(bucket)
-    print(f"Listing objects in bucket '{bucket}' with prefix '{prefix}'")
     vi = sync_versions(bucket, profile_name=profile_name)
 
     # vi.dump()
@@ -35,4 +34,7 @@ def list_objects(bucket: str, prefix: str = "", profile_name=None, recursive: bo
 
     for key in sorted(vi.keys()):
         if key.startswith(prefix):
-            print(vi[key].ls_1line(strip_prefix=prefix))
+            if batch:
+                print(key)
+            else:
+                print(vi[key].ls_1line(strip_prefix=prefix))

@@ -31,15 +31,13 @@ You can also give full target name like s3://stg-objectlock/s3v/test.txt. `s3://
 
 
 ### List
-Now, list contents of s3v logical 'folder' (all objects with name starting with `s3v/`). In "ls" we see filename, last modification time, size of latest copy and number of versions in storage. If we give full name of object, ls will list all versions of this object.
+Now, list contents of s3v logical 'folder' (all objects with name starting with `s3v/`). In "ls" we see filename, last modification time (UTC), size of latest copy and number of versions in storage. If we give full name of object, ls will list all versions of this object.
 
 ```bash
 $ s3v ls stg-objectlock/s3v
-Listing objects in bucket 'stg-objectlock' with prefix 's3v'
 test.txt                                |2026-02-10 16:21:55|              2|   3|
 
 $ s3v ls stg-objectlock/s3v/test.txt
-Listing objects in bucket 'stg-objectlock' with prefix 's3v/test.txt'
 Objects under prefix 's3v/test.txt':
 s3v/test.txt
    by0fQCa9Jl7gFgl8vKEjaDvl8z3CSRnD          2  2026-02-10 16:21:30
@@ -67,6 +65,19 @@ $ cat test.txt
 1
 ```
 
+You can use human language for `-s`, it understands words: first (oldest), latest, (last, newest), previous (prev, p). 
+Numerical index where 0 is oldest copy, 1 is next one and so on. Negative numbers are counted from latest, e.g. -1 is latest copy, -2 is little older and so on.
+You can give time specification (we use [dateparser](https://dateparser.readthedocs.io/en/latest/)) so it understands "yesterday", "2 weeks ago" or "2026-02-10 16:22" or "16:22". If time specification given, s3v will download version which was current on that time (latest uploaded before this time). 
+
+```
+$ s3v cp stg-objectlock/s3v/test.txt . -s 'midnight'
+# Downloading s3://stg-objectlock/s3v/test.txt >>> test.txt...
+# will use version from 2026-02-10 17:22:31+00:00 which is the latest version older than specified time 2026-02-11 00:00:00+00:00
+  Using version: EouOCDXQpn6xvA9LOXhlB6JITw_DZj_0
+# Successfully downloaded (2) to test.txt
+```
+
+
 
 ### Delete and undelete
 
@@ -76,16 +87,12 @@ $ cat test.txt
 $ s3v rm stg-objectlock/s3v/test.txt
 $ aws s3 ls stg-objectlock/s3v/
 $ s3v ls stg-objectlock/s3v/
-Listing objects in bucket 'stg-objectlock' with prefix 's3v/'
 test.txt                                |2026-02-10 16:35:00|              2|   4| [DEL]
 ```
 
 If we will see versions for file, we will see special delete marker on S3 (which makes file to be logically 'deleted').
 ```bash
- $ s3v ls stg-objectlock/s3v/test.txt
-Listing objects in bucket 'stg-objectlock' with prefix 's3v/test.txt'
-# Fetching version metadata for bucket: stg-objectlock...
-# Fetched metadata for 215 versions from 153 object(s) in bucket 'stg-objectlock'
+$ s3v ls stg-objectlock/s3v/test.txt
 Objects under prefix 's3v/test.txt':
 s3v/test.txt [deleted]
    by0fQCa9Jl7gFgl8vKEjaDvl8z3CSRnD          2  2026-02-10 16:21:30
@@ -99,8 +106,14 @@ s3v/test.txt [deleted]
 $ s3v unrm stg-objectlock/s3v/test.txt
 
 $ s3v ls stg-objectlock/s3v/
-Listing objects in bucket 'stg-objectlock' with prefix 's3v/'
 test.txt                                |2026-02-10 16:35:00|              2|   3|
+```
+
+`s3v wipe` will delete ALL VERSIONS of speficied object.
+```
+$ s3v wipe s3://stg-objectlock/test_file_1770544464743.txt
+# Wiping s3://stg-objectlock/test_file_1770544464743.txt (deleting all versions and delete markers)...
+# Successfully wiped s3://stg-objectlock/test_file_1770544464743.txt from history (deleted 2 versions/delete markers)
 ```
 
 ### Restore specific version

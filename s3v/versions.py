@@ -1,7 +1,9 @@
 from typing import Dict, Any
 from pathlib import Path
 import json
-from datetime import datetime
+from datetime import datetime, timezone
+import dateparser
+
 from .misc import kmgt
 
 
@@ -104,6 +106,59 @@ class VersionedObject:
         # if any IsLatest in delete markers is true, consider it deleted
         return any(dm.get("IsLatest", False) for dm in self.delete_markers.values())    
 
+
+    def sorted_versions(self):
+        return sorted(self.versions.values(), key=lambda v: v["LastModified"])
+
+    def translate_version(self, verspec: str) -> str | None:
+        """Translate a version specifier like 'latest' or 'oldest' to an actual version ID."""
+
+
+        if verspec in self.versions:
+            return verspec  # Already a version ID
+
+        # make versions list sorted by LastModified
+
+        vers = self.sorted_versions()
+
+        if verspec in ["latest", "last", "newest"]:
+            return vers[-1]["VersionId"] if vers else None
+
+        elif verspec in ["oldest", "first"]:
+            if not self.versions:
+                return None
+            return vers[0]["VersionId"]
+        elif verspec in ["previous", "prev", "p"]:
+            if len(vers) < 2:
+                return None
+            return vers[-2]["VersionId"]
+        else:
+
+            dt = dateparser.parse(verspec)
+            if dt:
+                # make UTC-aware if naive
+                if dt.tzinfo is None:
+                    dt = dt.replace(tzinfo=timezone.utc)
+
+                # find the latest version older than the specified datetime
+                older_versions = [v for v in vers if v["LastModified"] < dt]
+                if older_versions:                    
+                    return older_versions[-1]["VersionId"]
+                else:
+                    return None
+
+            try:
+                verpos = int(verspec)
+                return vers[verpos]["VersionId"]
+            except IndexError:
+                raise ValueError(f"Version position {verspec} is out of range for object with {len(vers)} versions.")
+
+            except ValueError:
+                # not an integer, not a known keyword, and not a version ID
+                raise ValueError(f"Invalid version specifier: {verspec}")
+
+
+
 class VersionsIndex:
     """In-memory representation of the versions metadata JSON.
 
@@ -181,3 +236,10 @@ class VersionsIndex:
             print(f"{key}")
             vo.dump()
             print()
+    
+    def translate_version(self, key: str, verspec: str) -> str | None:
+        vo = self.get(key)
+
+        if not vo:
+            raise ValueError(f"Key '{key}' not found in bucket '{self.bucketname}'")
+        return vo.translate_version(verspec)

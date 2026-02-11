@@ -3,12 +3,12 @@ import sys
 from pathlib import Path
 from botocore.exceptions import NoCredentialsError, ClientError, ParamValidationError
 
-from ..aws import list_buckets, delete_from_s3, upload_to_s3, download_from_s3, undelete_from_s3, recover_object_version
+from ..aws import list_buckets, delete_from_s3, upload_to_s3, download_from_s3, undelete_from_s3, recover_object_version, wipe_from_s3
 from ..ls import list_objects
 
 def get_args():    
     parser = argparse.ArgumentParser(description="S3V CLI")
-    parser.add_argument("COMMAND", choices=["ls", "cp", "rm", "del", "delete", "recover", "rec", "r", "unrm"], help="The command to execute: ls, cp, rm, recover")
+    parser.add_argument("COMMAND", choices=["ls", "cp", "rm", "del", "delete", "recover", "rec", "r", "unrm", "wipe"], help="The command to execute: ls, cp, rm, recover")
     parser.add_argument("LOCATION1", nargs='?', help="The S3 or local location (e.g. s3://bucket/key or bucket/prefix or arhive.zip)")
     parser.add_argument("LOCATION2", nargs='?', help="The S3 location for cp command (e.g., s3://bucket/key or bucket/prefix)")
 
@@ -16,6 +16,7 @@ def get_args():
     parser.add_argument("-r", "--recursive", action="store_true", default=False, help="List all objects recursively (only for ls command)")
     parser.add_argument("-s", "--version", metavar='S3_OBJECT_VERSION', help="Version specifier for rm and recover commands")
     parser.add_argument("-e", "--etag", default=False, action="store_true", help="Print ETag (md5sum) for each version in ls command")
+    parser.add_argument("-b", "--batch", default=False, action="store_true", help="Batch mode (minimal output, suitable for scripting)")
 
     return parser.parse_args()
 
@@ -50,7 +51,7 @@ def main():
                 list_buckets(profile_name=args.profile)
                 return
             
-            list_objects(bucket=args.LOCATION1, profile_name=args.profile, recursive=args.recursive, etag=args.etag)
+            list_objects(bucket=args.LOCATION1, profile_name=args.profile, recursive=args.recursive, etag=args.etag, batch=args.batch)
             return
         elif args.COMMAND == "cp":
             if args.LOCATION1 is None or args.LOCATION2 is None:
@@ -70,6 +71,9 @@ def main():
 
         elif args.COMMAND in ["rm", "del", "delete"]:
             delete_from_s3(s3obj=args.LOCATION1, version_id=args.version, profile_name=args.profile)
+            return
+        elif args.COMMAND == "wipe":    
+            wipe_from_s3(s3obj=args.LOCATION1, profile_name=args.profile)
             return
         elif args.COMMAND in ["recover", "rec", "r", "undelete", "undel", "unrm"]:
             if args.version:
