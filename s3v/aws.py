@@ -5,8 +5,6 @@ from pathlib import Path
 from botocore.exceptions import NoCredentialsError, ClientError
 from typing import Optional
 
-from more_itertools import bucket
-
 from .versions import VersionsIndex, VersionedObject
 from .misc import kmgt
 
