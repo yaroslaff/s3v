@@ -287,7 +287,7 @@ class VersionsIndex:
     def iter_files(self, basedir: str) -> Generator[VersionedObject, None, None ]:
         """ Yield VersionedObjects that are directly in the given base directory (not in subdirectories). """
         prefix = basedir
-        if not prefix.endswith("/"):
+        if basedir and not prefix.endswith("/"):
             prefix += "/"
         for key in self.bucket_keys.keys():
             if key.startswith(prefix):
@@ -298,7 +298,7 @@ class VersionsIndex:
     def directory_summary(self, basedir: str) -> Dict[str, Dict[str, Any]]:
         """ Get a summary of the contents of the given base directory, including total size and files count and last modified timestamp for each immediate subdirectory. """
         prefix = basedir
-        if not prefix.endswith("/"):
+        if basedir and not prefix.endswith("/"):
             prefix += "/"
         summary = dict()
         for key, vo in self.bucket_keys.items():
@@ -321,7 +321,7 @@ class VersionsIndex:
                             summary[subdir]["last_modified"] = latest_version["LastModified"]
         return summary
     
-    def ls_directories(self, basedir: str):
+    def ls_directories(self, basedir: str):        
         summary = self.directory_summary(basedir)
         for subdir, props in summary.items():
             last_modified_str = props["last_modified"].strftime("%Y-%m-%d %H:%M:%S") if props["last_modified"] else "N/A"

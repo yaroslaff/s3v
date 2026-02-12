@@ -44,7 +44,6 @@ def list_objects(bucket: str, prefix: str = "", profile_name=None, recursive: bo
         if not batch:
             vi.ls_directories(prefix)
 
-
         for vo in vi.iter_files(prefix):
             if batch:
                 print(vo.key)
