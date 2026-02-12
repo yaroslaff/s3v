@@ -1,4 +1,4 @@
-from typing import Dict, Any
+from typing import Dict, Any, Generator
 from pathlib import Path
 import json
 from datetime import datetime, timezone
@@ -158,6 +158,30 @@ class VersionedObject:
                 raise ValueError(f"Invalid version specifier: {verspec}")
 
 
+    def in_directory(self, dirname: str) -> bool:
+        prefix = dirname
+        if not prefix.endswith("/"):
+            prefix += "/"
+        return self.key.startswith(prefix)
+    
+    def get_subdir(self, basedir: str) -> str | None:
+        """ return None if file is directly in basedir, return subdir name if file is in a subdir of basedir, return None if file is not in basedir at all """
+        prefix = basedir
+        if not prefix.endswith("/"):
+            prefix += "/"
+        if self.key.startswith(prefix):
+            suffix = self.key[len(prefix):]
+            if "/" in suffix:
+                return suffix.split("/")[0]
+            else:
+                return None
+        else:
+            return None
+        
+
+        
+
+
 
 class VersionsIndex:
     """In-memory representation of the versions metadata JSON.
@@ -243,3 +267,63 @@ class VersionsIndex:
         if not vo:
             raise ValueError(f"Key '{key}' not found in bucket '{self.bucketname}'")
         return vo.translate_version(verspec)
+
+    def get_directories(self, basedir: str) -> set:
+        """Get a set of immediate subdirectories under the given base directory."""
+        prefix = basedir
+
+        if basedir and not prefix.endswith("/"):
+            prefix += "/"
+        subdirs = set()
+        
+        for key in self.bucket_keys.keys():            
+            if key.startswith(prefix):
+                suffix = key[len(prefix):]
+                if "/" in suffix:
+                    subdir = suffix.split("/")[0]
+                    subdirs.add(subdir)
+        return subdirs    
+
+    def iter_files(self, basedir: str) -> Generator[VersionedObject, None, None ]:
+        """ Yield VersionedObjects that are directly in the given base directory (not in subdirectories). """
+        prefix = basedir
+        if not prefix.endswith("/"):
+            prefix += "/"
+        for key in self.bucket_keys.keys():
+            if key.startswith(prefix):
+                suffix = key[len(prefix):]
+                if "/" not in suffix:
+                    yield self.bucket_keys[key]
+
+    def directory_summary(self, basedir: str) -> Dict[str, Dict[str, Any]]:
+        """ Get a summary of the contents of the given base directory, including total size and files count and last modified timestamp for each immediate subdirectory. """
+        prefix = basedir
+        if not prefix.endswith("/"):
+            prefix += "/"
+        summary = dict()
+        for key, vo in self.bucket_keys.items():
+            if key.startswith(prefix):
+                suffix = key[len(prefix):]
+                if "/" in suffix:
+                    subdir = suffix.split("/")[0]
+                    if subdir not in summary:
+                        summary[subdir] = {
+                            "total_size": 0,
+                            "files_count": 0,
+                            "last_modified": None
+                        }
+                    latest_version = vo.get_latest_version()
+                    if latest_version:
+                        summary[subdir]["total_size"] += latest_version["Size"]
+                        summary[subdir]["files_count"] += 1
+                        if (summary[subdir]["last_modified"] is None or 
+                            latest_version["LastModified"] > summary[subdir]["last_modified"]):
+                            summary[subdir]["last_modified"] = latest_version["LastModified"]
+        return summary
+    
+    def ls_directories(self, basedir: str):
+        summary = self.directory_summary(basedir)
+        for subdir, props in summary.items():
+            last_modified_str = props["last_modified"].strftime("%Y-%m-%d %H:%M:%S") if props["last_modified"] else "N/A"
+            # print(f"{subdir}/  <DIR>  {kmgt(props['total_size'])} files: {props['files_count']} last modified: {last_modified_str}")
+            print(f"{subdir+'/':34} [DIR]|{last_modified_str:19}|{kmgt(props['total_size']):>15}| {props['files_count']:>3}|")

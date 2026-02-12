@@ -4,7 +4,6 @@ import json
 from .aws import normalize_bucket_name, sync_versions
 from .versions import VersionsIndex
 
-
 def list_objects(bucket: str, prefix: str = "", profile_name=None, recursive: bool = False, etag: bool = False, batch: bool = False):
     """List objects in a specific S3 bucket and prefix."""
 
@@ -32,9 +31,22 @@ def list_objects(bucket: str, prefix: str = "", profile_name=None, recursive: bo
     if prefix and not prefix.endswith("/"):
         prefix += "/"
 
-    for key in sorted(vi.keys()):
-        if key.startswith(prefix):
+
+    if recursive:
+        for key in sorted(vi.keys()):
+            if key.startswith(prefix):
+                if batch:
+                    print(key)
+                else:
+                    print(vi[key].ls_1line(strip_prefix=prefix))
+    else:
+
+        if not batch:
+            vi.ls_directories(prefix)
+
+
+        for vo in vi.iter_files(prefix):
             if batch:
-                print(key)
+                print(vo.key)
             else:
-                print(vi[key].ls_1line(strip_prefix=prefix))
+                print(vo.ls_1line(strip_prefix=prefix))
