@@ -1,5 +1,5 @@
 # s3v
-Convinient CLI tool to work with versioned S3 buckets. Like `aws s3` or `aws s3api` but much easier to use.
+Convenient CLI tool to work with versioned S3 buckets. Like `aws s3` or `aws s3api` but much easier to use.
 
 s3v is like if `aws s3` and `aws s3api` were built on our planet — for actual humans.
 
@@ -13,11 +13,10 @@ pipx install git+https://github.com/yaroslaff/s3v
 ~~~
 
 ## Configuration
-s3v uses boto3, so configuration is same as for `aws` utility (same `~/.aws/` files or `AWS_` shell variables, and optional `--profile NAME` argument)
+s3v uses boto3, so configuration is the same as for `aws` utility (same `~/.aws/` files or `AWS_` shell variables, and optional `--profile NAME` argument)
 
 ## Examples
-We upload three versions of same file, each one will overwrite old copy. 
-
+We upload three versions of the same file, each one will overwrite old copy. 
 
 ### Upload
 
@@ -29,11 +28,11 @@ $ s3v cp test.txt s3://stg-objectlock/s3v/
 $ echo 3 > test.txt 
 $ s3v cp test.txt s3://stg-objectlock/s3v/
 ```
-You can also give full target name like s3://stg-objectlock/s3v/test.txt. `s3://` prefix is optional (s3 will try to guess what is local file and what is bucket name).
+You can also give the full target name like s3://stg-objectlock/s3v/test.txt. `s3://` prefix is optional (s3v will try to guess what is local file and what is bucket name).
 
 
 ### List
-Now, list contents of s3v logical 'folder' (all objects with name starting with `s3v/`). In "ls" we see filename, last modification time (UTC), size of latest copy and number of versions in storage. If we give full name of object, ls will list all versions of this object.
+Now, let's list the contents of the s3v logical 'folder' (all objects with name starting with `s3v/`). In "ls" we see filename, last modification time (UTC), size of latest copy and number of versions in storage. If we give full name of object, ls will list all versions of this object.
 
 ```bash
 $ s3v ls stg-objectlock/s3v
@@ -68,8 +67,8 @@ $ cat test.txt
 ```
 
 You can use human language for `-s`, it understands words: first (oldest), latest, (last, newest), previous (prev, p). 
-Numerical index where 0 is oldest copy, 1 is next one and so on. Negative numbers are counted from latest, e.g. -1 is latest copy, -2 is little older and so on.
-You can give time specification (we use [dateparser](https://dateparser.readthedocs.io/en/latest/)) so it understands "yesterday", "2 weeks ago" or "2026-02-10 16:22" or "16:22". If time specification given, s3v will download version which was current on that time (latest uploaded before this time). 
+Numerical index where 0 is oldest copy, 1 is next one and so on. Negative numbers are counted from latest, e.g. -1 is latest copy, -2 is a little older and so on.
+You can give time specification (we use [dateparser](https://dateparser.readthedocs.io/en/latest/)) so it understands "yesterday", "2 weeks ago" or "2026-02-10 16:22" or "16:22". If a time specification is given, s3v will download the version which was current on that time (latest uploaded before this time). 
 
 ```
 $ s3v cp stg-objectlock/s3v/test.txt . -s 'midnight'
@@ -83,7 +82,7 @@ $ s3v cp stg-objectlock/s3v/test.txt . -s 'midnight'
 
 ### Delete and undelete
 
-`s3v rm` deletes file. After deletion, `aws s3 ls` do not list file, but `s3v ls` still shows it with `[DEL]` tag.
+`s3v rm` deletes file. After deletion, `aws s3 ls` does not list the file, but `s3v ls` still shows it with `[DEL]` tag.
 
 ```bash
 $ s3v rm stg-objectlock/s3v/test.txt
@@ -92,7 +91,7 @@ $ s3v ls stg-objectlock/s3v/
 test.txt                                |2026-02-10 16:35:00|              2|   4| [DEL]
 ```
 
-If we will see versions for file, we will see special delete marker on S3 (which makes file to be logically 'deleted').
+When viewing versions for a file, we will see a special delete marker on S3 (which makes file to be logically 'deleted').
 ```bash
 $ s3v ls stg-objectlock/s3v/test.txt
 Objects under prefix 's3v/test.txt':
@@ -119,7 +118,7 @@ $ s3v wipe s3://stg-objectlock/test_file_1770544464743.txt
 ```
 
 ### Restore specific version
-To recover specific version of file (make it to be current) use `s3v recover` (or just `s3v r`). Let's recover first version of file.
+To recover specific version of file (make it to be current) use `s3v recover` (or just `s3v r`). Let's recover the first version of the file.
 
 ```bash
 $ s3v recover stg-objectlock/s3v/test.txt . -s by0fQCa9Jl7gFgl8vKEjaDvl8z3CSRnD
