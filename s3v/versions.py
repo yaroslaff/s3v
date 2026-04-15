@@ -69,7 +69,7 @@ class VersionedObject:
 
         deleted = self.is_deleted()
         status = " [DEL]" if deleted else " "
-        return f"{display_key:40}|{latest_version['LastModified'].strftime("%Y-%m-%d %H:%M:%S"):5}|{kmgt(latest_version['Size']):>15}| {len(self.versions):>3}|{status}"
+        return f"{display_key:40}|{latest_version['LastModified'].strftime('%Y-%m-%d %H:%M:%S'):5}|{kmgt(latest_version['Size']):>15}| {len(self.versions):>3}|{status}"
 
 
     def ls_versions(self, strip_prefix: str | None = None, etag: bool = False) -> str:
