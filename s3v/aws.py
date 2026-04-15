@@ -265,7 +265,7 @@ def download_from_s3(s3obj: str, destination: str, version_id: str | None = None
             
             extra_args["VersionId"] = vi.translate_version(key, version_id)
                         
-            print(f"  Using version: {extra_args["VersionId"]}")
+            print(f'  Using version: {extra_args["VersionId"]}')
         
         s3_client.download_file(bucket, key, str(dest_path), ExtraArgs=extra_args if extra_args else None)
         
